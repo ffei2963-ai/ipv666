@@ -1,6 +1,7 @@
 import json
 
 from src.db.models import Proxy
+from src.utils.logger import logger
 
 
 def generate_vless_inbound(proxy: Proxy, port: int) -> dict:
@@ -181,7 +182,6 @@ def generate_inbound_for_proxy(proxy: Proxy) -> list[dict]:
                 inbound = PROTOCOL_GENERATORS[p](proxy, ports[p])
                 inbounds.append(inbound)
             except Exception as e:
-                from src.utils.logger import logger
                 logger.error(f"Failed to generate {p} inbound for {proxy.ipv6_addr}: {e}")
     return inbounds
 

@@ -2,6 +2,7 @@ import base64
 import json
 
 from src.db.models import Proxy
+from src.utils.logger import logger
 
 
 def generate_vless_link(proxy: Proxy, port: int) -> str:
@@ -93,7 +94,6 @@ def generate_all_share_links(proxy: Proxy) -> dict[str, str]:
             try:
                 links[p] = SHARE_LINK_GENERATORS[p](proxy, actual_port)
             except Exception as e:
-                from src.utils.logger import logger
                 logger.error(f"Failed to generate share link for {p}: {e}")
                 links[p] = f"Error generating {p} link"
         port_offset += 1

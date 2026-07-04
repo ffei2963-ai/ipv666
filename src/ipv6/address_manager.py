@@ -30,9 +30,10 @@ class AddressManager:
         allocated = []
         db = await get_db()
         try:
-            existing = await db.execute_fetchall(
+            cursor = await db.execute(
                 "SELECT address FROM ipv6_pool WHERE proxy_id IS NOT NULL"
             )
+            existing = await cursor.fetchall()
             used_addresses = {row[0] for row in existing}
 
             offset = self.start_offset

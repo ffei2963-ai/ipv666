@@ -64,7 +64,7 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/yourusername/ipv666.git
+git clone https://github.com/ffei2963-ai/ipv666.git
 cd ipv666
 ```
 

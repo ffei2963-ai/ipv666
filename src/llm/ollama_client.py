@@ -1,3 +1,4 @@
+import asyncio
 import json
 import aiohttp
 
@@ -43,7 +44,6 @@ class OllamaClient:
                 logger.error(f"Ollama unexpected error (attempt {attempt+1}): {e}")
 
             if attempt < self.max_retries - 1:
-                import asyncio
                 await asyncio.sleep(2 ** attempt)
 
         return ""
@@ -75,7 +75,6 @@ class OllamaClient:
                 logger.warning(f"Ollama chat attempt {attempt+1} failed: {e}")
 
             if attempt < self.max_retries - 1:
-                import asyncio
                 await asyncio.sleep(2 ** attempt)
 
         return ""
