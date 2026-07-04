@@ -213,8 +213,7 @@ class Orchestrator:
 
             db = await get_db()
             try:
-                await db.execute("UPDATE proxies SET status='deleted', updated_at=? WHERE id=?",
-                                 (datetime.now().isoformat(), proxy.id))
+                await db.execute("DELETE FROM proxies WHERE id=?", (proxy.id,))
                 await db.execute("DELETE FROM port_allocations WHERE proxy_id=?", (proxy.id,))
                 await db.execute("UPDATE ipv6_pool SET proxy_id=NULL, allocated_at=NULL WHERE proxy_id=?", (proxy.id,))
                 await db.commit()

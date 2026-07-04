@@ -91,19 +91,20 @@ def generate_trojan_inbound(proxy: Proxy, port: int) -> dict:
         },
         "streamSettings": {
             "network": "tcp",
-            "security": "tls",
-            "tlsSettings": {
-                "certificates": [
-                    {
-                        "certificateFile": "/app/certs/cert.pem",
-                        "keyFile": "/app/certs/key.pem",
-                    }
-                ],
-                "serverName": proxy.tls_domain or proxy.ipv6_addr,
-            },
+            "security": "tls" if proxy.tls_enabled else "none",
         },
         "tag": f"inbound-trojan-{proxy.id}",
     }
+    if proxy.tls_enabled:
+        cfg["streamSettings"]["tlsSettings"] = {
+            "certificates": [
+                {
+                    "certificateFile": "/app/certs/cert.pem",
+                    "keyFile": "/app/certs/key.pem",
+                }
+            ],
+            "serverName": proxy.tls_domain or proxy.ipv6_addr,
+        }
     return cfg
 
 
@@ -118,6 +119,10 @@ def generate_shadowsocks_inbound(proxy: Proxy, port: int) -> dict:
             "level": 0,
             "email": f"ss-{proxy.id}",
             "network": "tcp,udp",
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "none",
         },
         "tag": f"inbound-ss-{proxy.id}",
     }
@@ -157,6 +162,10 @@ def generate_http_inbound(proxy: Proxy, port: int) -> dict:
             ],
             "allowTransparent": False,
             "userLevel": 0,
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "none",
         },
         "tag": f"inbound-http-{proxy.id}",
     }
