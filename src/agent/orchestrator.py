@@ -86,13 +86,13 @@ class Orchestrator:
         if available is None:
             return 0, []
 
-        results = []
         addresses = await self.address_manager.allocate_addresses(count)
         if len(addresses) < count:
-            return len(results), results
+            return 0, []
 
+        # Phase 1: Create and save all proxies to DB (no Xray reload yet)
+        pending_proxies = []
         for i, addr in enumerate(addresses):
-            proxy = None
             try:
                 base_port = available + i * len(protocols)
                 proxy = Proxy(
@@ -101,23 +101,32 @@ class Orchestrator:
                     protocols=list(protocols),
                     status="creating",
                 )
-
                 uuids, passwords = generate_proxy_credentials(protocols)
                 proxy.cred_uuids = uuids
                 proxy.cred_passwords = passwords
-
                 self.tls_manager.setup_for_proxy(proxy)
 
                 for j, proto in enumerate(protocols):
-                    port = base_port + j
-                    await self.firewall.open_port(port)
+                    await self.firewall.open_port(base_port + j)
 
                 proxy_id = await self._save_proxy(proxy)
                 proxy.id = proxy_id
+                pending_proxies.append(proxy)
+            except Exception as e:
+                logger.error(f"Failed to create proxy for {addr}: {e}")
+                await log_operation("create_proxy", target_ip=addr, result="failed", detail=str(e))
 
-                await self.xray_manager.add_proxy(proxy)
-                await asyncio.sleep(1.5)
+        if not pending_proxies:
+            return 0, []
 
+        # Phase 2: Add all proxies to Xray and reload once
+        await self.xray_manager.add_proxies_batch(pending_proxies)
+        await asyncio.sleep(3.0)  # Let Xray fully start
+
+        # Phase 3: Verify each proxy and collect results
+        results = []
+        for proxy in pending_proxies:
+            try:
                 if self.config.get("agent", {}).get("verify_new_proxy", True):
                     verified = False
                     for retry in range(3):
@@ -131,7 +140,7 @@ class Orchestrator:
                     else:
                         proxy.status = "error"
                         proxy.verify_count = 1
-                        logger.warning(f"Proxy {proxy.id} ({addr}) verification failed after {retry+1} attempts, rolling back")
+                        logger.warning(f"Proxy {proxy.id} ({proxy.ipv6_addr}) verification failed, rolling back")
                         await self._delete_proxy_safe(proxy.id)
                         continue
                 else:
@@ -139,7 +148,6 @@ class Orchestrator:
 
                 share_links = generate_all_share_links(proxy)
                 proxy.share_links = share_links
-
                 await self._update_proxy_status(proxy)
 
                 results.append({
@@ -154,16 +162,15 @@ class Orchestrator:
                 })
 
                 await log_operation(
-                    "create_proxy", target_id=proxy.id, target_ip=addr,
+                    "create_proxy", target_id=proxy.id, target_ip=proxy.ipv6_addr,
                     result="success", detail=f"protocols={','.join(protocols)}"
                 )
-
-                logger.info(f"Created proxy {proxy.id}: {addr} ports {base_port}-{base_port+len(protocols)-1}")
+                logger.info(f"Created proxy {proxy.id}: {proxy.ipv6_addr} ports {proxy.base_port}-{proxy.base_port+len(protocols)-1}")
 
             except Exception as e:
-                logger.error(f"Failed to create proxy for {addr}: {e}")
-                await log_operation("create_proxy", target_ip=addr, result="failed", detail=str(e))
-                if proxy and proxy.id:
+                logger.error(f"Failed to create proxy for {proxy.ipv6_addr}: {e}")
+                await log_operation("create_proxy", target_ip=proxy.ipv6_addr, result="failed", detail=str(e))
+                if proxy.id:
                     await self._delete_proxy_safe(proxy.id)
 
         return len(results), results

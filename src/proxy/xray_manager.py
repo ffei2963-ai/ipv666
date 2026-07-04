@@ -59,6 +59,11 @@ class XrayManager:
             self._all_proxies.append(proxy)
             await self._regenerate_config()
 
+    async def add_proxies_batch(self, proxies: list[Proxy]):
+        async with self._lock:
+            self._all_proxies.extend(proxies)
+            await self._regenerate_config()
+
     async def remove_proxy(self, proxy_id: int):
         async with self._lock:
             self._all_proxies = [p for p in self._all_proxies if p.id != proxy_id]
