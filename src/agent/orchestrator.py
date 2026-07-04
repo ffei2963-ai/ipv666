@@ -116,15 +116,24 @@ class Orchestrator:
                 proxy.id = proxy_id
 
                 await self.xray_manager.add_proxy(proxy)
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1.5)
 
                 if self.config.get("agent", {}).get("verify_new_proxy", True):
-                    verified = await self.verifier.verify(proxy, timeout=8)
+                    verified = False
+                    for retry in range(3):
+                        if retry > 0:
+                            await asyncio.sleep(2.0)
+                        verified = await self.verifier.verify(proxy, timeout=5)
+                        if verified:
+                            break
                     if verified:
                         proxy.status = "active"
                     else:
                         proxy.status = "error"
                         proxy.verify_count = 1
+                        logger.warning(f"Proxy {proxy.id} ({addr}) verification failed after {retry+1} attempts, rolling back")
+                        await self._delete_proxy_safe(proxy.id)
+                        continue
                 else:
                     proxy.status = "active"
 
