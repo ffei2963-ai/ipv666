@@ -21,25 +21,13 @@ BASE_CONFIG = {
     },
     "inbounds": [],
     "outbounds": [
-        {
-            "protocol": "freedom",
-            "settings": {},
-            "tag": "direct",
-        },
-        {
-            "protocol": "blackhole",
-            "settings": {},
-            "tag": "blocked",
-        },
+        {"protocol": "freedom", "settings": {}, "tag": "direct"},
+        {"protocol": "blackhole", "settings": {}, "tag": "blocked"},
     ],
     "routing": {
         "domainStrategy": "IPIfNonMatch",
         "rules": [
-            {
-                "type": "field",
-                "ip": ["geoip:private"],
-                "outboundTag": "blocked",
-            }
+            {"type": "field", "ip": ["geoip:private"], "outboundTag": "blocked"}
         ],
     },
 }
@@ -49,6 +37,7 @@ class XrayManager:
     def __init__(self):
         self._lock = asyncio.Lock()
         self._all_proxies: list[Proxy] = []
+        self._xray_process = None
 
     async def load_existing(self, proxies: list[Proxy]):
         self._all_proxies = proxies
@@ -65,7 +54,7 @@ class XrayManager:
             await self._regenerate_config()
 
     async def reload_from_db(self):
-        """Reload proxies from DB and regenerate config (used after batch rollback)."""
+        """Reload proxies from DB and regenerate config."""
         from src.db.database import get_db
         async with self._lock:
             db = await get_db()
@@ -82,6 +71,8 @@ class XrayManager:
                         id=d["id"], ipv6_addr=d["ipv6_addr"], base_port=d["base_port"],
                         protocols=json.loads(d["protocols"]) if d["protocols"] else [],
                         status=d["status"],
+                        cred_uuids=json.loads(d["cred_uuids"]) if d.get("cred_uuids") else {},
+                        cred_passwords=json.loads(d["cred_passwords"]) if d.get("cred_passwords") else {},
                     )
                     self._all_proxies.append(proxy)
             finally:
@@ -124,26 +115,44 @@ class XrayManager:
         logger.info(f"Xray config written with {len(config['inbounds'])} inbounds")
 
     async def _reload(self):
+        """Kill old Xray and start a new one. SIGHUP does not reliably add new inbounds."""
         if not os.path.exists(XRAY_BIN):
             logger.warning("Xray binary not found, skipping reload")
             return
         try:
-            await asyncio.to_thread(
-                subprocess.run,
+            subprocess.run(
                 [XRAY_BIN, "run", "-config", XRAY_CONFIG, "-test"],
                 capture_output=True, text=True, timeout=15
             )
-
-            pid = await self._get_pid()
-            if pid:
-                os.kill(pid, 1)
-                await asyncio.sleep(1)
-                logger.info("Xray reloaded (SIGHUP)")
-            else:
-                await self._start()
         except Exception as e:
-            logger.error(f"Xray reload failed: {e}")
-            await self._start()
+            logger.error(f"Xray config test failed: {e}")
+
+        await self._stop()
+        await self._start()
+
+    async def _stop(self):
+        """Kill existing Xray process."""
+        pid = await self._get_pid()
+        if pid:
+            try:
+                os.kill(pid, signal.SIGTERM)
+                await asyncio.sleep(0.5)
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            except ProcessLookupError:
+                pass
+            except Exception as e:
+                logger.warning(f"Failed to stop Xray pid={pid}: {e}")
+        if self._xray_process:
+            try:
+                self._xray_process.kill()
+                self._xray_process.wait(timeout=3)
+            except Exception:
+                pass
+            self._xray_process = None
+        await asyncio.sleep(0.5)
 
     async def _start(self):
         if not os.path.exists(XRAY_BIN):
@@ -155,16 +164,17 @@ class XrayManager:
                 [XRAY_BIN, "run", "-config", XRAY_CONFIG],
                 stdout=open("/var/log/xray/xray.log", "a"),
                 stderr=subprocess.STDOUT,
-                start_new_session=True,
             )
         self._xray_process = await asyncio.to_thread(_run_xray)
         await asyncio.sleep(2)
-        if await self._get_pid():
+        if self._xray_process and self._xray_process.poll() is None:
             logger.info("Xray started")
         else:
             logger.error("Xray failed to start")
 
     async def _get_pid(self) -> Optional[int]:
+        if self._xray_process and self._xray_process.poll() is None:
+            return self._xray_process.pid
         try:
             result = await asyncio.to_thread(
                 subprocess.run,
@@ -177,30 +187,5 @@ class XrayManager:
             return None
 
     async def restart(self):
-        if hasattr(self, '_xray_process') and self._xray_process:
-            try:
-                self._xray_process.terminate()
-                try:
-                    self._xray_process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    self._xray_process.kill()
-                    self._xray_process.wait()
-            except ProcessLookupError:
-                pass
-            except Exception:
-                pass
-        else:
-            pid = await self._get_pid()
-            if pid:
-                try:
-                    os.kill(pid, signal.SIGTERM)
-                    await asyncio.sleep(1)
-                    try:
-                        os.waitpid(pid, os.WNOHANG)
-                    except ChildProcessError:
-                        pass
-                except ProcessLookupError:
-                    pass
-                except Exception:
-                    pass
+        await self._stop()
         await self._start()
