@@ -31,7 +31,7 @@ class AddressManager:
         db = await get_db()
         try:
             cursor = await db.execute(
-                "SELECT address FROM ipv6_pool WHERE proxy_id IS NOT NULL"
+                "SELECT address FROM ipv6_pool"
             )
             existing = await cursor.fetchall()
             used_addresses = {row[0] for row in existing}
@@ -88,7 +88,7 @@ class AddressManager:
 
             db = await get_db()
             try:
-                await db.execute("DELETE FROM ipv6_pool WHERE address = ?", (address,))
+                await db.execute("UPDATE ipv6_pool SET proxy_id=NULL, allocated_at=NULL WHERE address = ?", (address,))
                 await db.commit()
             finally:
                 await db.close()
@@ -113,10 +113,15 @@ class AddressManager:
                 return
             with open(PERSIST_FILE, "r") as f:
                 lines = f.readlines()
+            seen = set()
+            unique_lines = []
+            for line in lines:
+                stripped = line.strip()
+                if stripped and stripped != address and stripped not in seen:
+                    unique_lines.append(line)
+                    seen.add(stripped)
             with open(PERSIST_FILE, "w") as f:
-                for line in lines:
-                    if line.strip() != address:
-                        f.write(line)
+                f.writelines(unique_lines)
         except Exception as e:
             logger.error(f"Failed to unpersist {address}: {e}")
 
@@ -133,7 +138,7 @@ class AddressManager:
         if not os.path.exists(PERSIST_FILE):
             return
         with open(PERSIST_FILE, "r") as f:
-            addresses = [line.strip() for line in f if line.strip()]
+            addresses = list(set(line.strip() for line in f if line.strip()))
         for addr in addresses:
             try:
                 await self._bind_address(addr)

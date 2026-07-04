@@ -6,9 +6,10 @@ DB_PATH = os.path.join(DB_DIR, "ipv666.db")
 
 
 async def get_db():
-    db = await aiosqlite.connect(DB_PATH)
+    db = await aiosqlite.connect(DB_PATH, timeout=30)
     db.row_factory = aiosqlite.Row
     await db.execute("PRAGMA journal_mode=WAL")
+    await db.execute("PRAGMA busy_timeout=5000")
     await db.execute("PRAGMA foreign_keys=ON")
     return db
 
@@ -80,12 +81,20 @@ async def init_db():
 
 async def log_operation(action: str, target_id: int = None, target_ip: str = None,
                         result: str = "success", detail: str = ""):
-    db = await get_db()
-    try:
-        await db.execute(
-            "INSERT INTO operation_logs (action, target_id, target_ip, result, detail) VALUES (?, ?, ?, ?, ?)",
-            (action, target_id, target_ip, result, detail)
-        )
-        await db.commit()
-    finally:
-        await db.close()
+    import asyncio
+    for attempt in range(3):
+        db = await get_db()
+        try:
+            await db.execute(
+                "INSERT INTO operation_logs (action, target_id, target_ip, result, detail) VALUES (?, ?, ?, ?, ?)",
+                (action, target_id, target_ip, result, detail)
+            )
+            await db.commit()
+            break
+        except Exception:
+            if attempt < 2:
+                await asyncio.sleep(0.1 * (attempt + 1))
+            else:
+                pass
+        finally:
+            await db.close()

@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import signal
 import subprocess
 from typing import Optional
 
@@ -86,11 +87,11 @@ class XrayManager:
 
     async def _write_config(self, config: dict):
         os.makedirs(XRAY_CONFIG_DIR, exist_ok=True)
-        await asyncio.to_thread(
-            lambda: json.dumps(config, indent=2) and open(XRAY_CONFIG, "w").write(
-                json.dumps(config, indent=2)
-            )
-        )
+        config_json = json.dumps(config, indent=2)
+        def _write():
+            with open(XRAY_CONFIG, "w") as f:
+                f.write(config_json)
+        await asyncio.to_thread(_write)
         logger.info(f"Xray config written with {len(config['inbounds'])} inbounds")
 
     async def _reload(self):
@@ -113,13 +114,14 @@ class XrayManager:
             await self._start()
 
     async def _start(self):
-        await asyncio.to_thread(
-            subprocess.Popen,
-            [XRAY_BIN, "run", "-config", XRAY_CONFIG],
-            stdout=open("/var/log/xray/xray.log", "a"),
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
+        def _run_xray():
+            return subprocess.Popen(
+                [XRAY_BIN, "run", "-config", XRAY_CONFIG],
+                stdout=open("/var/log/xray/xray.log", "a"),
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+        self._xray_process = await asyncio.to_thread(_run_xray)
         await asyncio.sleep(2)
         if await self._get_pid():
             logger.info("Xray started")
@@ -139,11 +141,30 @@ class XrayManager:
             return None
 
     async def restart(self):
-        pid = await self._get_pid()
-        if pid:
+        if hasattr(self, '_xray_process') and self._xray_process:
             try:
-                os.kill(pid, 9)
+                self._xray_process.terminate()
+                try:
+                    self._xray_process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self._xray_process.kill()
+                    self._xray_process.wait()
+            except ProcessLookupError:
+                pass
             except Exception:
                 pass
-            await asyncio.sleep(1)
+        else:
+            pid = await self._get_pid()
+            if pid:
+                try:
+                    os.kill(pid, signal.SIGTERM)
+                    await asyncio.sleep(1)
+                    try:
+                        os.waitpid(pid, os.WNOHANG)
+                    except ChildProcessError:
+                        pass
+                except ProcessLookupError:
+                    pass
+                except Exception:
+                    pass
         await self._start()

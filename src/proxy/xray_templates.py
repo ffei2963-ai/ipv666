@@ -188,11 +188,7 @@ def generate_inbound_for_proxy(proxy: Proxy) -> list[dict]:
 
 def _get_proxy_ports(proxy: Proxy) -> dict[str, int]:
     ports = {}
-    for proto in proxy.protocols:
+    for i, proto in enumerate(proxy.protocols):
         p = proto.lower()
-        protocol_index = _PROTOCOL_ORDER.index(p) if p in _PROTOCOL_ORDER else 0
-        ports[p] = proxy.base_port + protocol_index
+        ports[p] = proxy.base_port + i
     return ports
-
-
-_PROTOCOL_ORDER = ["vless", "vmess", "trojan", "shadowsocks", "socks5", "http"]

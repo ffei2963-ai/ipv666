@@ -31,6 +31,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nano \
     supervisor \
     jq \
+    unzip \
+    zstd \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
@@ -39,9 +41,10 @@ ARG XRAY_VERSION=1.8.23
 RUN curl -sSL https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VERSION}/Xray-linux-64.zip -o /tmp/xray.zip \
     && mkdir -p /usr/local/share/xray /usr/local/etc/xray /var/log/xray \
     && unzip -q /tmp/xray.zip -d /usr/local/share/xray \
-    && mv /usr/local/share/xray/xray /usr/local/bin/xray \
+    && cp /usr/local/share/xray/xray /usr/local/bin/xray \
+    && cp /usr/local/share/xray/*.dat /usr/local/bin/ \
     && chmod +x /usr/local/bin/xray \
-    && rm -rf /tmp/xray.zip /usr/local/share/xray/*.dat /usr/local/share/xray/*.json
+    && rm -rf /tmp/xray.zip /usr/local/share/xray
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
 

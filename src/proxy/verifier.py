@@ -10,15 +10,14 @@ class ProxyVerifier:
         if not proxy.protocols:
             return False
 
-        first_proto = proxy.protocols[0].lower()
-        port = proxy.base_port
-
         try:
-            if "shadowsocks" in [p.lower() for p in proxy.protocols]:
-                for i, p in enumerate(proxy.protocols):
-                    if p.lower() == "shadowsocks":
-                        port = proxy.base_port + i
-                        break
+            from src.proxy.xray_templates import _get_proxy_ports
+            ports = _get_proxy_ports(proxy)
+            if not ports:
+                return False
+
+            first_proto = proxy.protocols[0].lower()
+            port = ports.get(first_proto, proxy.base_port)
 
             connected = await self._check_tcp_connect(proxy.ipv6_addr, port, timeout)
             if connected:

@@ -73,6 +73,12 @@ class Orchestrator:
         if count < 1:
             return 0, []
 
+        max_proxies = self.config.get("agent", {}).get("max_proxies", 5000)
+        current = await self._count_proxies()
+        if current + count > max_proxies:
+            count = max(1, max_proxies - current)
+            logger.warning(f"Proxy limit near, reducing to {count}")
+
         available = await self._get_next_available_port()
         if available is None:
             return 0, []
@@ -172,7 +178,7 @@ class Orchestrator:
                 await db.execute("UPDATE proxies SET status='deleted', updated_at=? WHERE id=?",
                                  (datetime.now().isoformat(), proxy.id))
                 await db.execute("DELETE FROM port_allocations WHERE proxy_id=?", (proxy.id,))
-                await db.execute("DELETE FROM ipv6_pool WHERE proxy_id=?", (proxy.id,))
+                await db.execute("UPDATE ipv6_pool SET proxy_id=NULL, allocated_at=NULL WHERE proxy_id=?", (proxy.id,))
                 await db.commit()
             finally:
                 await db.close()
@@ -247,7 +253,16 @@ class Orchestrator:
             )
             row = await cursor.fetchone()
             if row and row[0]:
-                max_port = row[0] + 6
+                cursor_proto = await db.execute(
+                    "SELECT protocols FROM proxies WHERE base_port = ? AND status != 'deleted'",
+                    (row[0],)
+                )
+                proto_row = await cursor_proto.fetchone()
+                if proto_row:
+                    protocol_count = len(json.loads(proto_row[0]))
+                    max_port = row[0] + protocol_count
+                else:
+                    max_port = row[0] + 1
             else:
                 max_port = self.base_port
 
@@ -262,6 +277,15 @@ class Orchestrator:
                     return port
                 port += 1
             return None
+        finally:
+            await db.close()
+
+    async def _count_proxies(self) -> int:
+        db = await get_db()
+        try:
+            cursor = await db.execute("SELECT COUNT(*) FROM proxies WHERE status != 'deleted'")
+            row = await cursor.fetchone()
+            return row[0] if row else 0
         finally:
             await db.close()
 

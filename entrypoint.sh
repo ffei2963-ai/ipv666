@@ -6,6 +6,7 @@ echo "  IPv666 - IPv6 Proxy Station Group Server"
 echo "  Starting up..."
 echo "============================================"
 
+export PYTHONPATH=/app
 export OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11434}"
 export OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2:0.5b}"
 

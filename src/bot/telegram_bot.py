@@ -294,8 +294,8 @@ class TelegramBot:
         normalized = []
         seen = set()
         for p in raw:
-            p_clean = p.lower().strip().rstrip("s")
-            mapped = proto_map.get(p_clean)
+            p_clean = p.lower().strip()
+            mapped = proto_map.get(p_clean, proto_map.get(p_clean.rstrip("s")))
             if mapped and mapped not in seen:
                 normalized.append(mapped)
                 seen.add(mapped)
@@ -317,5 +317,11 @@ class TelegramBot:
 
     async def stop(self):
         if self.app:
-            await self.app.stop()
-            await self.app.shutdown()
+            try:
+                await self.app.stop()
+            except RuntimeError:
+                pass
+            try:
+                await self.app.shutdown()
+            except RuntimeError:
+                pass
