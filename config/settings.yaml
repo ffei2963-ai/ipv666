@@ -47,7 +47,7 @@ agent:
   health_check_interval: 60
   health_check_timeout: 10
   max_consecutive_failures: 3
-  verify_new_proxy: false
+  verify_new_proxy: true
   rollback_on_failure: true
 
 security:
