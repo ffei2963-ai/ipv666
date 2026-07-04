@@ -424,13 +424,16 @@ class Orchestrator:
             unhealthy = len(results) - healthy
 
             for proxy_id, is_ok in results.items():
-                await db.execute(
-                    "UPDATE proxies SET status=?, verify_count=?, last_check=? WHERE id=?",
-                    ("active" if is_ok else "error",
-                     0 if is_ok else 1,
-                     datetime.now().isoformat(),
-                     proxy_id)
-                )
+                if is_ok:
+                    await db.execute(
+                        "UPDATE proxies SET status='active', verify_count=0, last_check=? WHERE id=?",
+                        (datetime.now().isoformat(), proxy_id)
+                    )
+                else:
+                    await db.execute(
+                        "UPDATE proxies SET verify_count=verify_count+1, last_check=? WHERE id=?",
+                        (datetime.now().isoformat(), proxy_id)
+                    )
             await db.commit()
 
             return {"checked": len(results), "healthy": healthy, "unhealthy": unhealthy}

@@ -17,6 +17,7 @@ class HealthChecker:
         self._running = False
         self._task: asyncio.Task = None
         self._on_restart_callback = None
+        self._error_cooldowns: dict[int, float] = {}  # proxy_id -> next check timestamp
 
     def set_restart_callback(self, callback):
         self._on_restart_callback = callback
@@ -55,6 +56,7 @@ class HealthChecker:
                 return
 
             column_names = [desc[0] for desc in cursor.description]
+            now_ts = time.time()
             proxies = []
             for row in rows:
                 proxy_dict = {column_names[i]: row[i] for i in range(len(row))}
@@ -66,7 +68,16 @@ class HealthChecker:
                     verify_count=proxy_dict["verify_count"],
                     protocols=json.loads(proxy_dict["protocols"]) if proxy_dict["protocols"] else [],
                 )
-                proxies.append(proxy)
+                if proxy.status == "active":
+                    proxies.append(proxy)
+                elif proxy.status == "error":
+                    cooldown_until = self._error_cooldowns.get(proxy.id, 0)
+                    if now_ts >= cooldown_until:
+                        proxies.append(proxy)
+                        self._error_cooldowns[proxy.id] = now_ts + self.interval * 3
+
+            if not proxies:
+                return
 
             logger.debug(f"Health checking {len(proxies)} proxies")
             results = await self.verifier.verify_multiple(proxies, self.timeout)
@@ -78,14 +89,21 @@ class HealthChecker:
                         "UPDATE proxies SET status='active', verify_count=0, last_check=? WHERE id=?",
                         (datetime.now().isoformat(), proxy.id)
                     )
+                    self._error_cooldowns.pop(proxy.id, None)
                 else:
                     new_count = proxy.verify_count + 1
                     if new_count >= self.max_failures:
-                        await db.execute(
-                            "UPDATE proxies SET status='error', verify_count=?, last_check=? WHERE id=?",
-                            (new_count, datetime.now().isoformat(), proxy.id)
-                        )
-                        logger.warning(f"Proxy {proxy.id} ({proxy.ipv6_addr}) marked as error after {new_count} failures")
+                        if proxy.status != "error":
+                            await db.execute(
+                                "UPDATE proxies SET status='error', verify_count=?, last_check=? WHERE id=?",
+                                (new_count, datetime.now().isoformat(), proxy.id)
+                            )
+                            logger.warning(f"Proxy {proxy.id} ({proxy.ipv6_addr}) marked as error after {new_count} failures")
+                        else:
+                            await db.execute(
+                                "UPDATE proxies SET verify_count=?, last_check=? WHERE id=?",
+                                (new_count, datetime.now().isoformat(), proxy.id)
+                            )
                         await self._try_restart_proxy(proxy)
                     else:
                         await db.execute(
@@ -106,3 +124,6 @@ class HealthChecker:
 
     async def check_single(self, proxy: Proxy) -> bool:
         return await self.verifier.verify(proxy, self.timeout)
+
+
+import time
