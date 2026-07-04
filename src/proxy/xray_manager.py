@@ -64,6 +64,31 @@ class XrayManager:
             self._all_proxies.extend(proxies)
             await self._regenerate_config()
 
+    async def reload_from_db(self):
+        """Reload proxies from DB and regenerate config (used after batch rollback)."""
+        from src.db.database import get_db
+        import json as json_module
+        async with self._lock:
+            db = await get_db()
+            try:
+                cursor = await db.execute(
+                    "SELECT * FROM proxies WHERE status IN ('creating', 'active')"
+                )
+                rows = await cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                self._all_proxies = []
+                for row in rows:
+                    d = {columns[i]: row[i] for i in range(len(row))}
+                    proxy = Proxy(
+                        id=d["id"], ipv6_addr=d["ipv6_addr"], base_port=d["base_port"],
+                        protocols=json_module.loads(d["protocols"]) if d["protocols"] else [],
+                        status=d["status"],
+                    )
+                    self._all_proxies.append(proxy)
+            finally:
+                await db.close()
+            await self._regenerate_config()
+
     async def remove_proxy(self, proxy_id: int):
         async with self._lock:
             self._all_proxies = [p for p in self._all_proxies if p.id != proxy_id]

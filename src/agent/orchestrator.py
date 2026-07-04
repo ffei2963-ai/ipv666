@@ -123,8 +123,12 @@ class Orchestrator:
         await self.xray_manager.add_proxies_batch(pending_proxies)
         await asyncio.sleep(3.0)  # Let Xray fully start
 
-        # Phase 3: Verify each proxy and collect results
+        # Phase 3: Verify each proxy, collecting failures for batch rollback
         results = []
+        failed_proxy_ids = []
+
+        # Don't generate the Xray config until after all rollbacks
+        # Actually, need to add all verified proxies first
         for proxy in pending_proxies:
             try:
                 if self.config.get("agent", {}).get("verify_new_proxy", True):
@@ -140,8 +144,8 @@ class Orchestrator:
                     else:
                         proxy.status = "error"
                         proxy.verify_count = 1
-                        logger.warning(f"Proxy {proxy.id} ({proxy.ipv6_addr}) verification failed, rolling back")
-                        await self._delete_proxy_safe(proxy.id)
+                        logger.warning(f"Proxy {proxy.id} ({proxy.ipv6_addr}) verification failed")
+                        failed_proxy_ids.append(proxy.id)
                         continue
                 else:
                     proxy.status = "active"
@@ -170,8 +174,14 @@ class Orchestrator:
             except Exception as e:
                 logger.error(f"Failed to create proxy for {proxy.ipv6_addr}: {e}")
                 await log_operation("create_proxy", target_ip=proxy.ipv6_addr, result="failed", detail=str(e))
-                if proxy.id:
-                    await self._delete_proxy_safe(proxy.id)
+                failed_proxy_ids.append(proxy.id)
+
+        # Phase 4: Batch rollback all failed proxies at once, then single Xray reload
+        if failed_proxy_ids:
+            for pid in failed_proxy_ids:
+                await self._delete_proxy_db_only(pid)
+            # Reload Xray once with only successful proxies
+            await self.xray_manager.reload_from_db()
 
         return len(results), results
 
@@ -412,6 +422,21 @@ class Orchestrator:
             await self.delete_proxy(proxy_id=proxy_id)
         except Exception as e:
             logger.error(f"Safe delete failed for proxy {proxy_id}: {e}")
+
+    async def _delete_proxy_db_only(self, proxy_id: int):
+        """Delete proxy from DB without triggering Xray reload (used in batch rollback)."""
+        try:
+            db = await get_db()
+            try:
+                await db.execute("UPDATE proxies SET status='deleted', updated_at=? WHERE id=?",
+                                 (datetime.now().isoformat(), proxy_id))
+                await db.execute("DELETE FROM port_allocations WHERE proxy_id=?", (proxy_id,))
+                await db.execute("UPDATE ipv6_pool SET proxy_id=NULL, allocated_at=NULL WHERE proxy_id=?", (proxy_id,))
+                await db.commit()
+            finally:
+                await db.close()
+        except Exception as e:
+            logger.error(f"DB-only delete failed for proxy {proxy_id}: {e}")
 
     async def health_check_all(self) -> dict:
         db = await get_db()
