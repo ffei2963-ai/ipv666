@@ -580,14 +580,37 @@ class TelegramBot:
             kb = _back_only_keyboard("menu_list:0")
         else:
             status = STATUS_EMOJI.get(proxy["status"], "")
-            text = (
-                f"*代理 #{proxy['id']}*\n\n"
-                f"状态：{status} *{proxy['status']}*\n"
-                f"IPv6：`{proxy['ipv6_addr']}`\n"
-                f"端口：`{proxy['base_port']}`\n"
-                f"协议：{_proto_tags(proxy['protocols'])}\n"
-                f"创建时间：`{proxy.get('created_at', '未知')}`"
-            )
+            lines = [
+                f"*代理 #{proxy['id']}*",
+                f"",
+                f"状态：{status} *{proxy['status']}*",
+                f"IPv6：`{proxy['ipv6_addr']}`",
+                f"端口：`{proxy['base_port']}`",
+                f"协议：{_proto_tags(proxy['protocols'])}",
+                f"创建时间：`{proxy.get('created_at', '未知')}`",
+            ]
+            # 显示凭证
+            creds = []
+            for proto in proxy["protocols"]:
+                p_emoji = PROTO_EMOJI.get(proto, "")
+                if proto in ("vless", "vmess"):
+                    uuid = proxy.get("cred_uuids", {}).get(proto, "")
+                    creds.append(f"{p_emoji} *{proto.upper()}*：\n  UUID: `{uuid}`")
+                elif proto == "trojan":
+                    pwd = proxy.get("cred_passwords", {}).get(proto, "")
+                    creds.append(f"{p_emoji} *{proto.upper()}*：\n  密码: `{pwd}`")
+                elif proto == "shadowsocks":
+                    pwd = proxy.get("cred_passwords", {}).get(proto, "")
+                    creds.append(f"{p_emoji} *{proto.upper()}*：\n  方法: aes-256-gcm\n  密码: `{pwd}`")
+                elif proto in ("socks5", "http"):
+                    pwd = proxy.get("cred_passwords", {}).get(proto, "")
+                    creds.append(f"{p_emoji} *{proto.upper()}*：\n  用户: proxy\n  密码: `{pwd}`")
+            if creds:
+                lines.append(f"")
+                lines.append(f"🔐 *账号密码：*")
+                lines.extend(creds)
+
+            text = "\n".join(lines)
             kb = _proxy_detail_keyboard(proxy_id)
         if edit:
             await update.callback_query.edit_message_text(text, reply_markup=kb, parse_mode=ParseMode.MARKDOWN)

@@ -218,6 +218,8 @@ class Orchestrator:
                     "protocols": json.loads(d["protocols"]) if d["protocols"] else [],
                     "status": d["status"],
                     "share_links": json.loads(d["share_links"]) if d["share_links"] else {},
+                    "cred_uuids": json.loads(d["cred_uuids"]) if d["cred_uuids"] else {},
+                    "cred_passwords": json.loads(d["cred_passwords"]) if d["cred_passwords"] else {},
                     "created_at": d["created_at"],
                     "last_check": d["last_check"],
                 })
