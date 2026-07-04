@@ -67,7 +67,6 @@ class XrayManager:
     async def reload_from_db(self):
         """Reload proxies from DB and regenerate config (used after batch rollback)."""
         from src.db.database import get_db
-        import json as json_module
         async with self._lock:
             db = await get_db()
             try:
@@ -81,7 +80,7 @@ class XrayManager:
                     d = {columns[i]: row[i] for i in range(len(row))}
                     proxy = Proxy(
                         id=d["id"], ipv6_addr=d["ipv6_addr"], base_port=d["base_port"],
-                        protocols=json_module.loads(d["protocols"]) if d["protocols"] else [],
+                        protocols=json.loads(d["protocols"]) if d["protocols"] else [],
                         status=d["status"],
                     )
                     self._all_proxies.append(proxy)
