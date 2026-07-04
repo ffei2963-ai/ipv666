@@ -72,6 +72,9 @@ class Orchestrator:
                               purpose: str = "") -> tuple[int, list[dict]]:
         if count < 1:
             return 0, []
+        if not protocols:
+            logger.warning("create_proxies called with empty protocols")
+            return 0, []
 
         max_proxies = self.config.get("agent", {}).get("max_proxies", 5000)
         current = await self._count_proxies()
@@ -137,6 +140,8 @@ class Orchestrator:
                     "protocols": proxy.protocols,
                     "status": proxy.status,
                     "share_links": share_links,
+                    "cred_uuids": proxy.cred_uuids,
+                    "cred_passwords": proxy.cred_passwords,
                 })
 
                 await log_operation(
@@ -269,12 +274,18 @@ class Orchestrator:
                 max_port = self.base_port
 
             cursor2 = await db.execute(
-                "SELECT base_port FROM proxies WHERE status != 'deleted' ORDER BY base_port"
+                "SELECT base_port FROM proxies ORDER BY base_port"
             )
             used = {row[0] for row in await cursor2.fetchall()}
 
             port = max_port
             while port < 65535:
+                if port not in used:
+                    return port
+                port += 1
+            # wrap around: scan from base_port upward for gaps
+            port = self.base_port
+            while port < max_port:
                 if port not in used:
                     return port
                 port += 1
