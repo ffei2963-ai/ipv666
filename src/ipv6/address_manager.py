@@ -31,13 +31,13 @@ class AddressManager:
         db = await get_db()
         try:
             cursor = await db.execute(
-                "SELECT address FROM ipv6_pool"
+                "SELECT address FROM ipv6_pool WHERE proxy_id IS NOT NULL"
             )
             existing = await cursor.fetchall()
             used_addresses = {row[0] for row in existing}
 
             offset = self.start_offset
-            while len(allocated) < count and offset < 100000:
+            while len(allocated) < count and offset < 1000000:
                 addr = f"{self.subnet_base}::{offset:x}"
                 if addr not in used_addresses:
                     try:
