@@ -95,6 +95,9 @@ class XrayManager:
         logger.info(f"Xray config written with {len(config['inbounds'])} inbounds")
 
     async def _reload(self):
+        if not os.path.exists(XRAY_BIN):
+            logger.warning("Xray binary not found, skipping reload")
+            return
         try:
             await asyncio.to_thread(
                 subprocess.run,
@@ -114,6 +117,10 @@ class XrayManager:
             await self._start()
 
     async def _start(self):
+        if not os.path.exists(XRAY_BIN):
+            logger.warning("Xray binary not found, skipping start")
+            return
+        os.makedirs("/var/log/xray", exist_ok=True)
         def _run_xray():
             return subprocess.Popen(
                 [XRAY_BIN, "run", "-config", XRAY_CONFIG],

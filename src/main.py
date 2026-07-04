@@ -2,6 +2,8 @@ import asyncio
 import signal
 import sys
 
+from telegram import Update
+
 from src.agent.health_checker import HealthChecker
 from src.agent.intent_parser import IntentParser
 from src.agent.orchestrator import Orchestrator
@@ -101,24 +103,33 @@ class IPv666App:
             intent_parser=self.intent_parser,
             auth_manager=self.auth_manager,
         )
+        self.bot.build_app()
 
         logger.info("IPv666 fully started. Bot is listening...")
+        await self.bot.app.initialize()
+        await self.bot.app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+        await self.bot.app.start()
         self._running = True
 
-        try:
-            await self.bot.run()
-        except Exception as e:
-            logger.error(f"Bot runtime error: {e}")
+        while self._running:
+            await asyncio.sleep(1)
 
     async def shutdown(self):
         logger.info("Shutting down IPv666...")
         self._running = False
 
+        if self.bot and self.bot.app:
+            try:
+                await self.bot.app.updater.stop()
+            except Exception:
+                pass
+            try:
+                await self.bot.app.stop()
+            except Exception:
+                pass
+
         if self.health_checker:
             await self.health_checker.stop()
-
-        if self.bot:
-            await self.bot.stop()
 
         if self.orchestrator:
             await self.orchestrator.shutdown()
@@ -131,18 +142,24 @@ def main():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        try:
-            loop.add_signal_handler(sig, lambda: asyncio.ensure_future(app.shutdown()))
-        except NotImplementedError:
-            signal.signal(sig, lambda s, f: asyncio.ensure_future(app.shutdown()))
+    async def run():
+        task = asyncio.ensure_future(app.start())
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            try:
+                loop.add_signal_handler(sig, lambda: asyncio.ensure_future(app.shutdown()))
+            except NotImplementedError:
+                signal.signal(sig, lambda s, f: asyncio.ensure_future(app.shutdown()))
+        await task
 
     try:
-        loop.run_until_complete(app.start())
+        loop.run_until_complete(run())
     except KeyboardInterrupt:
         pass
     finally:
-        loop.run_until_complete(app.shutdown())
+        try:
+            loop.run_until_complete(app.shutdown())
+        except Exception:
+            pass
         loop.close()
 
 

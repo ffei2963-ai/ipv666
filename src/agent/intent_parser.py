@@ -143,12 +143,12 @@ class IntentParser:
                     "target_id": int(id_match.group(1)) if id_match else None,
                     "target_ip": ip_match.group(1) if ip_match else None, "purpose": None}
 
-        if any(w in msg for w in ["列", "查", "看", "list", "show", "status", "状态", "统计"]):
-            return {"action": "list", "count": 0, "protocols": [],
+        if any(w in msg for w in ["检查", "健康", "health", "check"]):
+            return {"action": "status", "count": 0, "protocols": [],
                     "target_id": None, "target_ip": None, "purpose": None}
 
-        if any(w in msg for w in ["检查", "健康", "health", "check", "测"]):
-            return {"action": "status", "count": 0, "protocols": [],
+        if any(w in msg for w in ["列", "查", "看", "list", "show", "status", "状态", "统计", "测"]):
+            return {"action": "list", "count": 0, "protocols": [],
                     "target_id": None, "target_ip": None, "purpose": None}
 
         return {"action": "help", "count": 0, "protocols": [],
