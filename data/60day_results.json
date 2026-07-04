@@ -1,0 +1,31 @@
+{
+  "duration": 165.29430103302002,
+  "bugs_count": 2,
+  "bugs": [
+    {
+      "module": "60day",
+      "description": "High error rate: 2844/3600",
+      "severity": "high"
+    },
+    {
+      "module": "60day",
+      "description": "DB inconsistency: stats.total=163, list count=0",
+      "severity": "high"
+    }
+  ],
+  "total_errors": 0,
+  "sim_stats": {
+    "creates": 0,
+    "deletes": 0,
+    "lists": 362,
+    "get_stats": 355,
+    "health_checks": 371,
+    "errors": 2844,
+    "total_created": 0,
+    "total_deleted": 0,
+    "max_concurrent": 0,
+    "final_count": 0
+  },
+  "days": 60,
+  "ops_per_day": 60
+}

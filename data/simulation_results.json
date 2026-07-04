@@ -1,0 +1,47 @@
+[
+  {
+    "module": "telegram_bot._normalize_protocols",
+    "description": "Normalize ['vmess', 'ss', 'socks5'] = ['vmess', 'shadowsocks', 'socks5'], expected ['vmess', 'ss', 'socks5']. rstrip('s') strips ALL trailing 's' chars, corrupting protocol names.",
+    "severity": "high"
+  },
+  {
+    "module": "telegram_bot._normalize_protocols",
+    "description": "rstrip('s') bug: 'vmess' -> 'vme'. Input protocols containing 's' at end get mangled.",
+    "severity": "high"
+  },
+  {
+    "module": "xray_manager._write_config",
+    "description": "File handle leak: open() without close() or 'with' statement. Repeated reloads accumulate open file handles, eventually causing 'Too many open files' error after prolonged operation.",
+    "severity": "medium"
+  },
+  {
+    "module": "xray_manager._write_config",
+    "description": "json.dumps called twice (waste): first call in 'and' short-circuit, second call for actual write.",
+    "severity": "low"
+  },
+  {
+    "module": "create_proxies",
+    "description": "Requested 2 proxy(ies) with ['shadowsocks'], only created 1",
+    "severity": "medium"
+  },
+  {
+    "module": "list_proxies",
+    "description": "Proxy #23 missing share_links in list",
+    "severity": "high"
+  },
+  {
+    "module": "address_manager",
+    "description": "After releasing all, allocated_count=52, expected 0",
+    "severity": "high"
+  },
+  {
+    "module": "delete_proxy",
+    "description": "Failed to delete proxy 5 by ID",
+    "severity": "high"
+  },
+  {
+    "module": "delete_proxy",
+    "description": "Failed to delete proxy by IP 2602:294:1:a18::2cb",
+    "severity": "high"
+  }
+]

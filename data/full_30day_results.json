@@ -1,0 +1,839 @@
+{
+  "total": 156,
+  "passed": 154,
+  "failed": 2,
+  "errors": 0,
+  "duration_seconds": 74.24341535568237,
+  "bug_count": 2,
+  "bugs": [
+    "[intent_ai] parse_检查代理是否正常工作: Got action=help, expected one of ['status']",
+    "[port_allocation] port_offset_correct: Expected 10003, got 11184"
+  ],
+  "modules": {
+    "config": [
+      {
+        "name": "load_config",
+        "ok": true,
+        "detail": "配置加载成功"
+      },
+      {
+        "name": "app_name",
+        "ok": true,
+        "detail": "Got: ipv666 (expected 'ipv666' in Docker; settings.yaml may not be at /app/)"
+      },
+      {
+        "name": "base_port",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "ollama_model",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "health_interval",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "protocols_list",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "protocol_names",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "database": [
+      {
+        "name": "table_exists_proxies",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "table_exists_port_allocations",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "table_exists_ipv6_pool",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "table_exists_bot_users",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "table_exists_operation_logs",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "insert_and_query",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "update",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "delete",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "operation_log",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "rollback_on_conflict",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "credentials": [
+      {
+        "name": "uuid_uniqueness_1000",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "password_uniqueness_500",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "ss_password_uniqueness",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "multi_protocol_generation",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "password_length",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "intent_fallback": [
+      {
+        "name": "parse_创建5个代理",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_新建10个vless代理",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_create 3 proxies with ss",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_add 7 个 vmess 代理",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_删除代理5",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_delete proxy 3",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_remove #7",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_列出所有代理",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_show all proxies",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_查看状态",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_检查健康",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_health check",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_帮我",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_帮助",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "parse_None",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "chinese_delete_with_id",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "intent_ai": [
+      {
+        "name": "ollama_health_check",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "basic_generate",
+        "ok": true,
+        "detail": "Response length: 9"
+      },
+      {
+        "name": "basic_chat",
+        "ok": true,
+        "detail": "Response length: 27"
+      },
+      {
+        "name": "parse_创建5个代理只要vless和ss",
+        "ok": true,
+        "detail": "Got action=create, expected one of ['create']"
+      },
+      {
+        "name": "parse_我有多少代理",
+        "ok": true,
+        "detail": "Got action=list, expected one of ['list', 'status']"
+      },
+      {
+        "name": "parse_删除代理3号",
+        "ok": true,
+        "detail": "Got action=delete, expected one of ['delete']"
+      },
+      {
+        "name": "parse_检查代理是否正常工作",
+        "ok": false,
+        "detail": "Got action=help, expected one of ['status']"
+      },
+      {
+        "name": "parse_帮助",
+        "ok": true,
+        "detail": "Got action=help, expected one of ['help']"
+      },
+      {
+        "name": "parse_create 5 proxies with vless an",
+        "ok": true,
+        "detail": "Got action=create, expected one of ['create']"
+      },
+      {
+        "name": "parse_how many proxies do I have",
+        "ok": true,
+        "detail": "Got action=list, expected one of ['list', 'status']"
+      },
+      {
+        "name": "stress_10_parses",
+        "ok": true,
+        "detail": "Success rate: 100%, avg time: 2.1s"
+      }
+    ],
+    "address": [
+      {
+        "name": "subnet_detect",
+        "ok": true,
+        "detail": "Primary: 2602:294:1:a18::e"
+      },
+      {
+        "name": "allocate_5",
+        "ok": true,
+        "detail": "Allocated: ['2602:294:1:a18::3e8', '2602:294:1:a18::3e9']..."
+      },
+      {
+        "name": "uniqueness",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "format_check",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "persist_file",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "release",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "release",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "release",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "release",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "release",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "release_nonexistent_no_crash",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "get_count",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "xray_templates": [
+      {
+        "name": "all_generators_present",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "single_shadowsocks",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "single_vmess",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "single_vless",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "single_http",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "single_socks5",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "single_trojan",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "all_six_inbounds",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "port_mapping",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "mixed_protocols",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "share_links": [
+      {
+        "name": "vless_format",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "vless_non_empty",
+        "ok": true,
+        "detail": "Link: vless://470aded0-fc7f-4cec-a2b1-8af699a2aa74@[2001:db8::100]"
+      },
+      {
+        "name": "vmess_format",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "vmess_non_empty",
+        "ok": true,
+        "detail": "Link: vmess://eyJ2IjogIjIiLCAicHMiOiAiSVB2NjY2LTEiLCAiYWRkIjogIjIw"
+      },
+      {
+        "name": "trojan_format",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "trojan_non_empty",
+        "ok": true,
+        "detail": "Link: trojan://q91qTnT7!qP^iWtoMd$0CP4h@[2001:db8::100]:40002#IPv6"
+      },
+      {
+        "name": "shadowsocks_format",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "shadowsocks_non_empty",
+        "ok": true,
+        "detail": "Link: ss://YWVzLTI1Ni1nY206MDBlNmFhOGQzZDdkM2I2MTU2YTcxYjg4MjgyZjI"
+      },
+      {
+        "name": "socks5_format",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "socks5_non_empty",
+        "ok": true,
+        "detail": "Link: socks5://proxy:WTAt62e#re%2@[2001:db8::100]:40004"
+      },
+      {
+        "name": "http_format",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "http_non_empty",
+        "ok": true,
+        "detail": "Link: http://proxy:xRt$5VCb%64h@[2001:db8::100]:40005"
+      },
+      {
+        "name": "tls_vless_link",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "tls_vmess_link",
+        "ok": true,
+        "detail": "Decoded VMess config contains TLS info: {\"v\": \"2\", \"ps\": \"IPv666-2\", \"add\": \"2001:db8::200\", \"port\": \"50001\", \"id\": \"8bd"
+      }
+    ],
+    "tls": [
+      {
+        "name": "disabled_when_no_domain",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "sets_tls_false",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "cert_paths_exist",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "firewall": [
+      {
+        "name": "detect_type",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "open_port",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "close_port",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "auth": [
+      {
+        "name": "admin_ids_parsed",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "add_admins_from_env",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "add_user",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "admin_authorized",
+        "ok": true,
+        "detail": "Is 123456789 authorized: True"
+      },
+      {
+        "name": "non_whitelisted_blocked",
+        "ok": true,
+        "detail": "Should NOT be authorized: False"
+      },
+      {
+        "name": "list_users",
+        "ok": true,
+        "detail": "Users: 3"
+      },
+      {
+        "name": "remove_user",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "verifier": [
+      {
+        "name": "empty_protocols_rejected",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "verify_multiple_count",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "health": [
+      {
+        "name": "params",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "check_single_no_crash",
+        "ok": true,
+        "detail": "Result: False"
+      },
+      {
+        "name": "callback_set",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "failure_logic",
+        "ok": true,
+        "detail": "verify_count=2, +1 >= max_failures(3) = True"
+      },
+      {
+        "name": "start",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "stop",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "orchestrator": [
+      {
+        "name": "create_proxies",
+        "ok": true,
+        "detail": "Created 3/3"
+      },
+      {
+        "name": "proxy_21_has_share_links",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "proxy_22_has_share_links",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "proxy_23_has_share_links",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "list_proxies",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "get_stats",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "create_0",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "create_negative",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "delete_success",
+        "ok": true,
+        "detail": "Deleted #21"
+      },
+      {
+        "name": "delete_verified",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "delete_nonexistent",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "health_check_all",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "combo_vless_vmess",
+        "ok": true,
+        "detail": "Requested 2, got 2"
+      },
+      {
+        "name": "combo_shadowsocks",
+        "ok": true,
+        "detail": "Requested 2, got 2"
+      },
+      {
+        "name": "combo_vless_shadowsocks_socks5",
+        "ok": true,
+        "detail": "Requested 2, got 2"
+      },
+      {
+        "name": "combo_vless_vmess_trojan",
+        "ok": true,
+        "detail": "Requested 2, got 2"
+      },
+      {
+        "name": "multi_protocol_works",
+        "ok": true,
+        "detail": "Final proxy count: 33"
+      }
+    ],
+    "port_allocation": [
+      {
+        "name": "first_port",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "port_offset_correct",
+        "ok": false,
+        "detail": "Expected 10003, got 11184"
+      },
+      {
+        "name": "count_correct",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "rollback": [
+      {
+        "name": "add_steps",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "reverse_order",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "close_triggers_rollback",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "completed_prevents_rollback",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "custom_exception",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "subnet": [
+      {
+        "name": "return_keys",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "prefix_len_valid",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "range_format",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "logger": [
+      {
+        "name": "setup",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "log_levels",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "has_handlers",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "xray_manager": [
+      {
+        "name": "init",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "add_proxy",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "update_proxy",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "remove_proxy",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "load_existing",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "bot": [
+      {
+        "name": "normalize_protocols",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "empty_fallback",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "invalid_fallback",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "e2e": [
+      {
+        "name": "create_proxies_e2e",
+        "ok": true,
+        "detail": "Created 2/2 in full stack"
+      },
+      {
+        "name": "list_after_create",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "get_stats_e2e",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "delete_e2e",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "cleanup_all",
+        "ok": true,
+        "detail": "Remaining: 0"
+      }
+    ],
+    "30day_sim": [
+      {
+        "name": "total_duration_ok",
+        "ok": true,
+        "detail": "Duration: 5.9s (should be < 600s)"
+      },
+      {
+        "name": "fd_no_leak",
+        "ok": true,
+        "detail": "FD growth: 0"
+      },
+      {
+        "name": "mem_growth_ok",
+        "ok": true,
+        "detail": "Memory growth: 0.0MB"
+      },
+      {
+        "name": "error_rate_low",
+        "ok": true,
+        "detail": "Errors: 606 (Xray not available - expected)"
+      },
+      {
+        "name": "completes",
+        "ok": true,
+        "detail": "All 30 days simulated"
+      }
+    ]
+  },
+  "timing": {}
+}
