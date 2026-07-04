@@ -1,0 +1,8 @@
+python-telegram-bot[job-queue]==21.10
+aiohttp==3.10.11
+pyyaml==6.0.2
+python-dotenv==1.0.1
+aiosqlite==0.20.0
+psutil==6.1.0
+cryptography==43.0.3
+Jinja2==3.1.4

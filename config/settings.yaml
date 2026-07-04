@@ -1,0 +1,57 @@
+app:
+  name: ipv666
+  version: "1.0.0"
+  log_level: INFO
+  log_dir: /var/log/app
+
+ipv6:
+  interface: eth0
+  subnet_prefix: null
+  address_start_offset: 2
+  max_addresses: 50000
+  persist_on_reboot: true
+
+proxy:
+  engine: xray
+  xray_bin: /usr/local/bin/xray
+  xray_config_dir: /usr/local/etc/xray
+  xray_log_dir: /var/log/xray
+  base_port: 10000
+  max_ports_per_proxy: 6
+  protocols:
+    - vless
+    - vmess
+    - trojan
+    - shadowsocks
+    - socks5
+    - http
+  tls:
+    enabled: false
+    domain: ""
+    email: "admin@example.com"
+    cert_dir: /app/certs
+    acme_endpoint: "https://acme-v02.api.letsencrypt.org/directory"
+
+ollama:
+  host: "127.0.0.1:11434"
+  model: "qwen2:0.5b"
+  timeout: 120
+  max_retries: 3
+
+telegram:
+  bot_token: ""
+  admin_ids: []
+  polling_timeout: 30
+
+agent:
+  health_check_interval: 60
+  health_check_timeout: 10
+  max_consecutive_failures: 3
+  verify_new_proxy: true
+  rollback_on_failure: true
+
+security:
+  auto_firewall: true
+  firewall_type: iptables
+  ndp_proxy_auto: true
+  ndp_proxy_config: /etc/ndppd.conf
